@@ -9,6 +9,7 @@
           content="default-src 'self' data: gap: https://ssl.gstatic.com
               http://127.0.0.1:8100 http://localhost:8100
               http://46.101.32.194:8000
+              https://router.project-osrm.org/
               https://*.tile.openstreetmap.org https://*.tile.osm.org
               http://*.tile.openstreetmap.org http://*.tile.osm.org
               'unsafe-eval';
@@ -27,6 +28,8 @@
     <link rel="stylesheet" type="text/css" href="external/Leaflet.ExtraMarkers/dist/css/leaflet.extra-markers.min.css">
     <link rel="stylesheet" type="text/css" href="css/index.css">
     <link rel="stylesheet" type="text/css" href="css/style1.css">
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <link rel="stylesheet" href="leaflet-routing-machine.css" />
 
     <script src="external/jquery/jquery-1.12.4.js"></script>
     <script src="external/jquery.mobile-1.4.5/jquery.mobile-1.4.5.min.js"></script>
@@ -34,13 +37,18 @@
     <script src="external/Leaflet.ExtraMarkers/dist/js/leaflet.extra-markers.min.js"></script>
     <script type="text/javascript" src="cordova.js"></script>
     <script type="text/javascript" src="js/index.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="leaflet-routing-machine.js"></script>
+
 </head>
 
 <body onload="onLoad();">
 
+
 <div data-role="page" style="background-color: white" id="main-page">
     <div id="main-div" data-role="main" class="ui-content">
-        <h1>Main Page placeholder</h1>
+        <h1>Walks Finder</h1>
     </div>
     <div data-role="footer" data-id="main-foot" class="ui-header ui-bar-a" role="banner" data-position="fixed"
          style="text-align:center; background-color: rgba(255,255,255,0.2);" data-tap-toggle="false">
@@ -90,6 +98,11 @@
                         <span class="fa fa-binoculars fa-3x" style="color:deepskyblue"></span>Walks
                     </a>
                 </td>
+                <td style="text-align: left; vertical-align: middle; width: 10%">
+                    <a id="clear" class="ui-btn-mini ui-btn-inline">
+                        <span class="fa fa-binoculars fa-3x" style="color:deepskyblue"></span>Clear Route
+                    </a>
+                </td>
                 <td></td>
                 <td></td>
             </tr>
@@ -100,7 +113,7 @@
 
 <div data-role="page" data-dialog="true" data-close-btn="none" style="background-color: white" id="login-page">
     <div data-role="header" style="text-align: center; background-color: silver">
-        <span style="font-size: x-large">Web Mapping 2017</span>
+        <span style="font-size: x-large">Walks Finder</span>
     </div>
 
     <div data-role="main" class="ui-content"

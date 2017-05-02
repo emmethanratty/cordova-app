@@ -5,7 +5,8 @@ var URLS = {
     userme: "/rest/userme/",
     updateposition: "/rest/updateposition/",
     walks: "/rest/walks/",
-
+    rating: "/rest/rating/",
+    clear: "/rest/clear/",
 };
 
 var map;
@@ -56,6 +57,10 @@ function onDeviceReady() {
 
         $("#update_database").on("touchstart", function () {
             update_database();
+        });
+
+        $("#clear").on("touchstart", function () {
+            clear();
         });
 
         $("#map-page").enhanceWithin();
@@ -160,7 +165,7 @@ function setMapToCurrentLocation() {
     if (localStorage.lastKnownCurrentPosition) {
         var myPos = JSON.parse(localStorage.lastKnownCurrentPosition);
         var myLatLon = L.latLng(myPos.coords.latitude, myPos.coords.longitude);
-        L.marker(myLatLon, {icon: curIcon}).addTo(map);
+        L.marker(myLatLon, {icon: curIcon}).addTo(map).bindPopup("<b>This is You</b>");
         map.flyTo(myLatLon, 15);
     }
 }
@@ -201,8 +206,8 @@ function makeBasicMap() {
         zoomControl: false,
         attributionControl: false
     }).fitWorld();
-    L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        useCache: true
+    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+	    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map);
 
     $("#leaflet-copyright").html("Leaflet | Map Tiles &copy; <a href='http://openstreetmap.org'>OpenStreetMap</a> contributors");
@@ -230,6 +235,7 @@ function setUserName() {
 }
 
 function walks(){
+    
     $.ajax({
         type: "GET",
         headers: {"Authorization": localStorage.authtoken},
@@ -237,23 +243,73 @@ function walks(){
     }).done(function (data, status, xhr) {
         
         var walksJson = JSON.parse(data.data)
+        
         for(var i=0; i < walksJson.length; i++){
             var coord = L.latLng(walksJson[i].latitude,walksJson[i].longitude );
 
             if(walksJson[i].contactNumber == ''){
-                popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
-                               "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address;
+                var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
+                               "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
+                               "<b>Rate</b><br>" + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" + 
+                               "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }else{
-                popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
-                               "<br><br>" + "<b>Contact</b><br>"+ walksJson[i].contactNumber + "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address;
+                var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
+                               "<br><br>" + "<b>Contact</b><br>"+ walksJson[i].contactNumber + "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
+                               "<b>Rate</b><br>" + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" +
+                               "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }
 
 
             L.marker(coord, {icon: walksicon}).addTo(map).bindPopup(popupContent);
         }
     }).fail(function (xhr, status, error) {
-        $(".sp-username").html("");
+        alert("Walks Failed")
     });
+}
+
+function rating(id_prompt){
+    var rating_prompt = prompt("Please enter a rating out of 5:", "");
+   
+    $.ajax({
+        type: "GET",
+        headers: {"Authorization": localStorage.authtoken},
+        url: HOST + URLS["rating"],
+        data: {
+                rating: rating_prompt,
+                rating_id: id_prompt,
+                rating_username: localStorage.lastUserName,
+            }
+    }).done(function (data, status, xhr) {
+        alert("Rating added");
+    }).fail(function (xhr, status, error) {
+        alert("Rating Failed");
+    });
+
+}
+
+
+function directions(lat, long) {
+
+    map.closePopup();
+
+    var myPos = JSON.parse(localStorage.lastKnownCurrentPosition);
+
+    L.Routing.control({
+        waypoints: [
+            L.latLng(myPos.coords.latitude,  myPos.coords.longitude),
+            L.latLng(lat, long)
+        ],
+        createMarker: function() { return null; },
+        routeWhileDragging: true
+    }).addTo(map);
+
+}
+
+function clear(){
+    var control = L.Routing.control();
+    map.removeControl(routingControl);
+    control.spliceWaypoints(0, 2);
+    alert("Route Cleared");
 }
 
 
