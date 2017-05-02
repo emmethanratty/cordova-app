@@ -242,25 +242,36 @@ function walks(){
         url: HOST + URLS["walks"]
     }).done(function (data, status, xhr) {
         
-        var walksJson = JSON.parse(data.data)
-        
+        var walksJson = JSON.parse(data.data);
+        var ratingJson = JSON.parse(data.rating);
+        var single_rating = "No Rating";
+
         for(var i=0; i < walksJson.length; i++){
             var coord = L.latLng(walksJson[i].latitude,walksJson[i].longitude );
+
+            for(var j = 0; j < ratingJson.length; j++){
+                if(walksJson[i].poiID == ratingJson[j].id){
+                    alert(ratingJson[j].average);
+                    single_rating = ratingJson[j].average + "/5";
+                }
+            }
 
             if(walksJson[i].contactNumber == ''){
                 var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
                                "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
-                               "<b>Rate</b><br>" + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" + 
+                               "<b>Rate</b><br>" + "  " + single_rating + "               " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" + 
                                "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }else{
                 var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
                                "<br><br>" + "<b>Contact</b><br>"+ walksJson[i].contactNumber + "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
-                               "<b>Rate</b><br>" + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" +
+                               "<b>Rate</b><br>" + "  " +  single_rating +  "             " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" +
                                "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }
 
 
             L.marker(coord, {icon: walksicon}).addTo(map).bindPopup(popupContent);
+
+            single_rating = "No Rating"
         }
     }).fail(function (xhr, status, error) {
         alert("Walks Failed")
