@@ -98,11 +98,6 @@
                         <span class="fa fa-binoculars fa-3x" style="color:deepskyblue"></span>Walks
                     </a>
                 </td>
-                <td style="text-align: left; vertical-align: middle; width: 10%">
-                    <a id="clear" class="ui-btn-mini ui-btn-inline">
-                        <span class="fa fa-binoculars fa-3x" style="color:deepskyblue"></span>Clear Route
-                    </a>
-                </td>
                 <td></td>
                 <td></td>
             </tr>
@@ -129,9 +124,48 @@
                     style="background-color: #669966; color: white;">
                 <span class="fa fa-sign-in fa-lg"></span> Log In
             </button>
+            <button id="btn-register" type="button" class="ui-btn ui-corner-all live-button"
+                    style="background-color: #669966; color: white;">
+                <span class="fa fa-registered fa-lg"></span> Register
+            </button>
         </form>
     </div>
 </div>
+
+<div data-role="page" data-dialog="true" data-close-btn="none" style="background-color: white" id="register-page">
+    <div data-role="header" style="text-align: center; background-color: silver">
+        <span style="font-size: x-large">Register</span>
+    </div>
+
+    <div data-role="main" class="ui-content"
+         style="align-content: center; background-color: white">
+        <form role="form">
+            <div class="ui-field-contain">
+                <label id="label-in-username-r" for="in-username-r">Username</span></label>
+                <input type="text" class="form-control" id="in-username-r" placeholder="Username">
+                <label id="label-in-password-r" for="in-password-r">Password</label>
+                <input type="password" class="form-control" id="in-password-r" placeholder="Password">
+                <label id="label-in-password2" for="in-password2">Password Again</label>
+                <input type="password" class="form-control" id="in-password2" placeholder="Password">
+                <label id="label-in-first_name" for="in-first-name">First Name</span></label>
+                <input type="text" class="form-control" id="in-first-name" placeholder="First Name">
+                <label id="label-in-last-name" for="in-last-name">Last Name</span></label>
+                <input type="text" class="form-control" id="in-last-name" placeholder="Last name">
+                <label id="label-in-email" for="in-email">Email</span></label>
+                <input type="text" class="form-control" id="in-email" placeholder="Email">
+                
+            </div>
+            <button id="btn-registration" type="button" class="ui-btn ui-corner-all live-button"
+                    style="background-color: #669966; color: white;" onclick="registration()">
+                <span class="fa fa-registered fa-lg"></span> Register
+            </button>
+        </form>
+    </div>
+</div>
+
+<div align="center" data-role="page" data-dialog="true" data-close-btn="none" style="background-color: white" id="reviews-page">
+</div>
+
 
 </body>
 </html>

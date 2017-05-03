@@ -7,9 +7,12 @@ var URLS = {
     walks: "/rest/walks/",
     rating: "/rest/rating/",
     clear: "/rest/clear/",
+    listreviews: "/rest/listreviews/",
+    registration: "/rest/registration/",
 };
 
 var map;
+var myWindow;
 
 var curIcon = L.ExtraMarkers.icon({
     icon: 'fa-crosshairs',
@@ -38,6 +41,7 @@ function onDeviceReady() {
 
     $("#btn-login").on("touchstart", loginPressed);
     $("#sp-logout").on("touchstart", logoutPressed);
+    $("#btn-register").on("touchstart", reg_direct);
 
     if (localStorage.lastUserName && localStorage.lastUserPwd) {
         $("#in-username").val(localStorage.lastUserName);
@@ -71,9 +75,9 @@ function onDeviceReady() {
 
     $(document).on("pageshow", function (event) {
         console.log("In pageshow. Target is " + event.target.id + ".");
-        if (!localStorage.authtoken) {
-            $.mobile.navigate("#login-page");
-        }
+        // if (!localStorage.authtoken) {
+        //     $.mobile.navigate("#login-page");
+        // }
         setUserName();
     });
 
@@ -235,12 +239,19 @@ function setUserName() {
 }
 
 function walks(){
+
+    map.remove();
+    makeBasicMap();
+    getCurrentlocation();
+    setMapToCurrentLocation();
+
     
     $.ajax({
         type: "GET",
         headers: {"Authorization": localStorage.authtoken},
         url: HOST + URLS["walks"]
     }).done(function (data, status, xhr) {
+        
         
         var walksJson = JSON.parse(data.data);
         var ratingJson = JSON.parse(data.rating);
@@ -251,7 +262,6 @@ function walks(){
 
             for(var j = 0; j < ratingJson.length; j++){
                 if(walksJson[i].poiID == ratingJson[j].id){
-                    alert(ratingJson[j].average);
                     single_rating = ratingJson[j].average + "/5";
                 }
             }
@@ -259,12 +269,12 @@ function walks(){
             if(walksJson[i].contactNumber == ''){
                 var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
                                "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
-                               "<b>Rate</b><br>" + "  " + single_rating + "               " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" + 
+                               "<b>Rate</b><br>" + "  " + single_rating + "               " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<button onclick=listreviews(" + walksJson[i].poiID + ")>Show Reviews</button>" + "<br><br>" +
                                "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }else{
                 var popupContent = "<b> Name</b><br>" + walksJson[i].name + "<br><br>" + "<b>Description</b><br>"+ walksJson[i].description +
                                "<br><br>" + "<b>Contact</b><br>"+ walksJson[i].contactNumber + "<br><br>" + "<b>Address</b><br>"+ walksJson[i].address + "<br><br>" +
-                               "<b>Rate</b><br>" + "  " +  single_rating +  "             " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<br><br>" +
+                               "<b>Rate</b><br>" + "  " +  single_rating +  "             " + "<button onclick=rating(" + walksJson[i].poiID + ")>Rate</button>" + "<button onclick=listreviews(" + walksJson[i].poiID + ")>Show Reviews</button>" + "<br><br>" +
                                "<button onclick=directions(" + walksJson[i].latitude + "," + walksJson[i].longitude + ")>Directions</button>";
             }
 
@@ -280,8 +290,11 @@ function walks(){
 
 function rating(id_prompt){
     var rating_prompt = prompt("Please enter a rating out of 5:", "");
-   
-    $.ajax({
+
+    if(rating_prompt == ""){
+        alert("Nothing Entered")
+    }else if(rating_prompt == "1" || rating_prompt == "2" || rating_prompt == "3" || rating_prompt == "4" || rating_prompt == "5"){
+        $.ajax({
         type: "GET",
         headers: {"Authorization": localStorage.authtoken},
         url: HOST + URLS["rating"],
@@ -290,11 +303,17 @@ function rating(id_prompt){
                 rating_id: id_prompt,
                 rating_username: localStorage.lastUserName,
             }
-    }).done(function (data, status, xhr) {
-        alert("Rating added");
-    }).fail(function (xhr, status, error) {
-        alert("Rating Failed");
-    });
+        }).done(function (data, status, xhr) {
+            alert("Rating added");
+        }).fail(function (xhr, status, error) {
+            alert("Rating Failed");
+        });
+    } else{
+        alert("Only Enter 1 - 5")
+    }
+
+    walks();
+   
 
 }
 
@@ -302,6 +321,7 @@ function rating(id_prompt){
 function directions(lat, long) {
 
     map.closePopup();
+    walks();
 
     var myPos = JSON.parse(localStorage.lastKnownCurrentPosition);
 
@@ -310,18 +330,92 @@ function directions(lat, long) {
             L.latLng(myPos.coords.latitude,  myPos.coords.longitude),
             L.latLng(lat, long)
         ],
+        draggable: false,
         createMarker: function() { return null; },
-        routeWhileDragging: true
     }).addTo(map);
 
+    control.hide();
 }
 
-function clear(){
-    var control = L.Routing.control();
-    map.removeControl(routingControl);
-    control.spliceWaypoints(0, 2);
-    alert("Route Cleared");
+function listreviews(id_prompt){
+
+    $.ajax({
+        type: "GET",
+        headers: {"Authorization": localStorage.authtoken},
+        url: HOST + URLS["listreviews"],
+        data: {
+                walk_id: id_prompt,
+            }
+    }).done(function (data, status, xhr) {
+
+        var ratingJson = JSON.parse(data.rating_list);
+        var html = "";
+
+        var div = document.getElementById("reviews-page");
+
+        for(var i = 0; i<ratingJson.length; i++){
+           html +=  "<b>Username: </b>" + ratingJson[i].username + " <b>Rating: </b> " + ratingJson[i].rating + "<br><br>"
+        }
+        html +="<button onclick=revertToMap()>Close</button>"
+
+        div.innerHTML = html;
+
+        $.mobile.navigate("#reviews-page");
+
+    }).fail(function (xhr, status, error) {
+        alert("Listing Failed");
+    });
+
 }
+
+function revertToMap(){
+    $.mobile.navigate("#map-page");
+}
+
+
+function reg_direct(){
+    $.mobile.navigate("#register-page");
+}
+
+function registration(){
+
+    var username = document.getElementById('in-username-r');
+    var password = document.getElementById('in-password-r');
+    var password2 = document.getElementById('in-password2');
+    var firstName = document.getElementById('in-first-name');
+    var lastName = document.getElementById('in-last-name');
+    var email = document.getElementById('in-email');
+
+
+    if(username.value == "" || password.value == "" || password2.value == "" || firstName.value == "" || lastName.value == "" || email.value == ""){
+        alert("Please Enter all Fields")
+    }else{
+
+        if(password.value == password2.value){
+            $.ajax({
+                type: "GET",
+                url: HOST + URLS["registration"],
+                data: {
+                        username: username.value,
+                        password: password.value,
+                        first_name: firstName.value,
+                        last_name: lastName.value,
+                        email: email.value,
+                    }
+            }).done(function (data, status, xhr) {
+                alert("Registration Sucessful");	
+                $.mobile.navigate("#login-page");
+            }).fail(function (xhr, status, error) {
+                alert("Registration Failed");
+            });
+        }else{
+            alert("Passwords do no match");
+        }
+
+    }
+}
+
+
 
 
 
