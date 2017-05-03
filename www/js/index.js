@@ -12,7 +12,6 @@ var URLS = {
 };
 
 var map;
-var myWindow;
 
 var curIcon = L.ExtraMarkers.icon({
     icon: 'fa-crosshairs',
@@ -170,7 +169,9 @@ function setMapToCurrentLocation() {
         var myPos = JSON.parse(localStorage.lastKnownCurrentPosition);
         var myLatLon = L.latLng(myPos.coords.latitude, myPos.coords.longitude);
         L.marker(myLatLon, {icon: curIcon}).addTo(map).bindPopup("<b>This is You</b>");
-        map.flyTo(myLatLon, 15);
+        //map.flyTo(myLatLon, 15);
+        //map.panTo(new L.LatLng(myPos.coords.latitude,  myPos.coords.longitude));
+        map.setView(new L.LatLng(myPos.coords.latitude,  myPos.coords.longitude), 15);
     }
 }
 
@@ -308,13 +309,11 @@ function rating(id_prompt){
         }).fail(function (xhr, status, error) {
             alert("Rating Failed");
         });
+        
+        walks();
     } else{
         alert("Only Enter 1 - 5")
     }
-
-    walks();
-   
-
 }
 
 
@@ -377,6 +376,10 @@ function reg_direct(){
     $.mobile.navigate("#register-page");
 }
 
+function revertToLogin(){
+    $.mobile.navigate("#login-page");
+}
+
 function registration(){
 
     var username = document.getElementById('in-username-r');
@@ -415,7 +418,4 @@ function registration(){
     }
 }
 
-
-
-
-
+    
